@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Nomad - Feel the SkopYeah</title>
+  <link rel="shortcut icon" href="img/Nomad2.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+
+<body>
+<div id="intro-screen">
+  <div id="login-box" class="animated">
+    <div id="logo"></div>
+  </div>
+</div>
+  <!--TOOLBAR-->
+  <div id="toolbar" class="toolbar" role="toolbar" aria-label="...">
+    <button id="calculateRoute" class="action-button shadow animate-btn green">Calculate</button>
+    <button id="auto-complete-hide" class="action-button shadow animate-btn blue">Add place</button>
+    <button id="directions-toggle" class="action-button shadow animate-btn yellow">Directions</button>
+    <button id="deleteRoute" class="action-button shadow animate-btn red">Delete</button>
+  </div>
+
+  <!--Autocomplete -->
+  <div class="pac-card" id="pac-card">
+    <div>
+      <div id="title">
+        Add place
+      </div>
+    </div>
+    <div id="pac-container">
+      <input id="pac-input" type="text" placeholder="Enter a location">
+    </div>
+  </div><!--End Autocomplete-->
+
+  <!--Map-->
+  <div id="map"></div>
+  <!--End Map-->
+  
+  <!--Infowindow-->
+  <div id="infowindow-content">
+    <img src="" width="16" height="16" id="place-icon">
+    <span id="place-name" class="title"></span><br>
+    <span id="place-address"></span>
+  </div><!--End Infowindow-->
+
+  <!--Right panel-->
+  <div id="right-panel" class="right-panel">
+    <p>Total Distance: <span id="total">Please Calculate the Route</span></p>
+  </div><!--End Right Panel-->
+
+  <!--<script src="js/script.js"></script>-->
+  <script src="js/map.js"></script>
+  <!--<script src="js/eventListeners.js"></script>-->
+  <script src="js/geo-location.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaQE_rivkVNCfLGyhXMPmTo6ehsSc9XT8&libraries=places&callback=initMap"
+    async defer></script>
+  <!--<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaQE_rivkVNCfLGyhXMPmTo6ehsSc9XT8&libraries=places"></script>-->
+  <!--<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC1zoejDabomZpEAvMCrdVFIaoa21af7VQ&callback=initMap">-->
+  </script>
+</body>
+
+</html>
