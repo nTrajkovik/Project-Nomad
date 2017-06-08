@@ -1,4 +1,5 @@
 var mustVisitPlaces = [];
+
 var iconBase = 'https://maps.google.com/mapfiles/ms/micons/';
 var icons = {
     yellow: {
@@ -53,66 +54,93 @@ function getFeatures() {
 
 //initMap()
 function initMap() {
-    map = new google.maps.Map(document.getElementById('map'), {
+    var mapOptions = {
         zoom: 16,
         center: {
             lat: 42.005139,
             lng: 21.406801
         },
         mapTypeId: 'roadmap',
-        styles:
-            [{
-                stylers: [{
-                    visibility: 'simplified'
-                }]
-            }, {
-                elementType: 'labels',
-                stylers: [{
-                    visibility: 'off'
-                }]
-            }, {
-                "featureType": "poi.business",
-                "stylers": [{
-                        "visibility": "on"
-                    },
-                    {
-                        "weight": 20
-                    }
-                ]
-            } ]
+        styles: [{
+            stylers: [{
+                visibility: 'simplified'
+            }]
+        }, {
+            elementType: 'labels',
+            stylers: [{
+                visibility: 'off'
+            }]
+        }, {
+            "featureType": "poi.business",
+            "stylers": [{
+                    "visibility": "on"
+                },
+                {
+                    "weight": 20
+                }
+            ]
+        }]
+    };
+    map = new google.maps.Map(document.getElementById('map'), mapOptions);
+    map.addListener('idle', performSearch);
+    //Initializing services
+    var directionsService = new google.maps.DirectionsService;
+    var directionsDisplay = new google.maps.DirectionsRenderer({
+        draggable: true,
+        map: map,
+        panel: document.getElementById('right-panel')
     });
-    
-    infowindow = new google.maps.InfoWindow();
-    var service = new google.maps.places.PlacesService(map);
-    service.nearbySearch({
-        location: {
-            lat: 42.005139,
-            lng: 21.406801
-        },
-        radius: 800,
-        type: ['bakery', 'bar', 'bowling_alley', 'cafe',
-        'convenience_store', 'department_store',
-        'food', 'liquor_store', 'restaurant']
-    }, callback);
+    var infowindow = new google.maps.InfoWindow();
+    var PlacesService = new google.maps.places.PlacesService(map);
+    // PlacesService.nearbySearch({
+    //     location: {
+    //         lat: 42.005139,
+    //         lng: 21.406801
+    //     },
+    //     radius: 800,
+    //     type: ['bakery', 'bar', 'bowling_alley', 'cafe',
+    //     'convenience_store', 'department_store',
+    //     'food', 'liquor_store', 'restaurant']
+    // }, callback);
 
     function callback(results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            for (var i = 0; i < results.length; i++) {
-                createMarker(results[i]);
-            }
+            mustVisitPlaces = results;
         }
     }
 
-    function createMarker(place) {
-        var placeLoc = place.geometry.location;
-        var marker = new google.maps.Marker({
-            map: map,
-            position: place.geometry.location
-        });
+    function performSearch() {
+        var request = {
+            bounds: map.getBounds(),
+            keyword: 'cafe restaurant bar food'
+        };
+        PlacesService.radarSearch(request, callback);
+    }
 
-        google.maps.event.addListener(marker, 'click', function () {
-            infowindow.setContent(place.name);
-            infowindow.open(map, this);
+    function createMarker(place) {
+        
+        PlacesService.getDetails({
+            placeId: place.place_id
+        }, function (place, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: place.geometry.location
+                });
+                google.maps.event.addListener(marker, 'click', function () {
+                    var URL = "";
+                    if(place.photos && place.photos.length > 0){
+                        URL = place.photos[0].getUrl({'maxHeight': 100});
+                    }
+                    infowindow.setContent(
+                        '<div>' +
+                        '<strong>' + place.name + '</strong><br>' +
+                        '<img src="' + place.icon + '" height="25" width="25"/>' + '<br>' +
+                        '<img src="' + URL + '" height="auto" width="auto"/>' + '<br>' +
+                        place.formatted_address + '</div>');
+                    infowindow.open(map, this);
+                });
+            }
         });
     }
 
@@ -131,32 +159,23 @@ function initMap() {
         document.getElementById('total').innerHTML = total + ' km';
     }
 
-    //Direction calculation
-    var directionsService = new google.maps.DirectionsService;
-    var directionsDisplay = new google.maps.DirectionsRenderer({
-        draggable: true,
-        map: map,
-        panel: document.getElementById('right-panel')
-    });
+
+    //Show markers
+    function showMarkers() {
+        for (let i = 0; i < mustVisitPlaces.length; i++) {
+            createMarker(mustVisitPlaces[i]);
+        }
+    }
     //Calculates and displays the route
     function calculateAndDisplayRoute(directionsService, directionsDisplay) {
         var waypts = [];
         var markers = mustVisitPlaces;
-        var start;
-        var end;
-        var fts = getFeatures() || [];
-        start = fts[0].position;
-        end = fts[fts.length - 1].position
+        var start = markers[0].geometry.location;
+        var end = markers[markers.length - 1].geometry.location;
 
-        for (var i = 0; i < markers.length; i++) {
+        for (var i = 0; i < 23; i++) {
             waypts.push({
                 location: markers[i].geometry.location,
-                stopover: true
-            });
-        }
-        for (var i = 1; i < fts.length - 1; i++) {
-            waypts.push({
-                location: new google.maps.LatLng(fts[i].position.lat, fts[i].position.lng),
                 stopover: true
             });
         }
@@ -170,10 +189,10 @@ function initMap() {
             if (status === 'OK') {
                 directionsDisplay.setDirections(response);
                 map.setCenter(start);
-                // var route = response.routes[0];
-                // var summaryPanel = document.getElementById('directions-panel');
-                // summaryPanel.innerHTML = '';
-                // // For each route, display summary information.
+                var route = response.routes[0];
+                var summaryPanel = document.getElementById('directions-panel');
+                summaryPanel.innerHTML = '';
+                // For each route, display summary information.
                 // for (var i = 0; i < route.legs.length; i++) {
                 //   var routeSegment = i + 1;
                 //   summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
@@ -193,7 +212,8 @@ function initMap() {
     });
     //Add submit listener and toggle listener
     document.getElementById('calculateRoute').addEventListener('click', function () {
-        calculateAndDisplayRoute(directionsService, directionsDisplay);
+        // calculateAndDisplayRoute(directionsService, directionsDisplay);
+        showMarkers();
     });
 
     document.getElementById('deleteRoute').addEventListener('click', function () {

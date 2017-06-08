@@ -1,0 +1,32 @@
+{
+    "Items":[
+        {
+            "title": "Alexander the Great fountain",
+            "rating": 6,
+            "img": "link",
+            "position": {
+                "lng": 32.1123,
+                "lat": 52.2124
+            }
+        },
+        {
+            "title": "McDonalds",
+            "rating": 2,
+            "img": "link",
+            "position": {
+                "lng": 32.1143,
+                "lat": 52.2124
+            }
+        },
+        {
+            "title": "Other stuff",
+            "rating": 6,
+            "img": "link",
+            "position": {
+                "lng": 32.1123,
+                "lat": 52.2124
+            }
+        }
+        
+    ]
+}
