@@ -82,7 +82,7 @@ function initMap() {
         }]
     };
     map = new google.maps.Map(document.getElementById('map'), mapOptions);
-    map.addListener('idle', performSearch);
+
     //Initializing services
     var directionsService = new google.maps.DirectionsService;
     var directionsDisplay = new google.maps.DirectionsRenderer({
@@ -105,7 +105,11 @@ function initMap() {
 
     function callback(results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            mustVisitPlaces = results;
+            var res = results;
+            res.forEach(function (element) {
+                mustVisitPlaces.push(element);
+            }, this);
+            showMarkers(res);
         }
     }
 
@@ -115,33 +119,6 @@ function initMap() {
             keyword: 'cafe restaurant bar food'
         };
         PlacesService.radarSearch(request, callback);
-    }
-
-    function createMarker(place) {
-        
-        PlacesService.getDetails({
-            placeId: place.place_id
-        }, function (place, status) {
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-                var marker = new google.maps.Marker({
-                    map: map,
-                    position: place.geometry.location
-                });
-                google.maps.event.addListener(marker, 'click', function () {
-                    var URL = "";
-                    if(place.photos && place.photos.length > 0){
-                        URL = place.photos[0].getUrl({'maxHeight': 100});
-                    }
-                    infowindow.setContent(
-                        '<div>' +
-                        '<strong>' + place.name + '</strong><br>' +
-                        '<img src="' + place.icon + '" height="25" width="25"/>' + '<br>' +
-                        '<img src="' + URL + '" height="auto" width="auto"/>' + '<br>' +
-                        place.formatted_address + '</div>');
-                    infowindow.open(map, this);
-                });
-            }
-        });
     }
 
     /**
@@ -160,10 +137,39 @@ function initMap() {
     }
 
 
+    function createMarker(place) {
+
+        PlacesService.getDetails({
+            placeId: place.place_id
+        }, function (place, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: place.geometry.location
+                });
+                google.maps.event.addListener(marker, 'click', function () {
+                    var URL = "";
+                    if (place.photos && place.photos.length > 0) {
+                        URL = place.photos[0].getUrl({
+                            'maxHeight': 100
+                        });
+                    }
+                    infowindow.setContent(
+                        '<div>' +
+                        '<strong>' + place.name + '</strong><br>' +
+                        '<img src="' + place.icon + '" height="25" width="25"/>' + '<br>' +
+                        '<img src="' + URL + '" height="auto" width="auto"/>' + '<br>' +
+                        place.formatted_address + '</div>');
+                    infowindow.open(map, this);
+                });
+            } else { console.log("Something failed, status="+status);}
+        });
+    }
+
     //Show markers
-    function showMarkers() {
-        for (let i = 0; i < mustVisitPlaces.length; i++) {
-            createMarker(mustVisitPlaces[i]);
+    function showMarkers(markers) {
+        for (let i = 0; i < markers.length; i++) {
+            createMarker(markers[i]);
         }
     }
     //Calculates and displays the route
@@ -211,16 +217,37 @@ function initMap() {
         computeTotalDistance(directionsDisplay.getDirections());
     });
     //Add submit listener and toggle listener
-    document.getElementById('calculateRoute').addEventListener('click', function () {
+    document.getElementById('search-places').addEventListener('click', function () {
         // calculateAndDisplayRoute(directionsService, directionsDisplay);
-        showMarkers();
+        performSearch();
+        console.log(mustVisitPlaces.length);
     });
 
-    document.getElementById('deleteRoute').addEventListener('click', function () {
-        //localStorage.setItem('mustVisitPlaces', JSON.stringify([]));
+    document.getElementById('draw-route').addEventListener('click', function () {
+
+        var locationWaypoints = [];
+        for (var i = 0; i < mustVisitPlaces.length; i++) {
+            locationWaypoints.push({
+                location: mustVisitPlaces[i].geometry.location,
+                stopover: true
+            });
+        }
+        console.log(mustVisitPlaces.length);
+        // get directions and draw on map
+        gDirRequest(directionsService, locationWaypoints, function drawGDirLine(path) {
+            var line = new google.maps.Polyline({
+                clickable: false,
+                map: map,
+                path: path,
+                strokeColor: "#228B22",
+                strokeOpacity: 0.8,
+                strokeWeight: 3
+            });
+        });
     });
 
     document.getElementById('auto-complete-hide').addEventListener('click', function () {
+        console.log(mustVisitPlaces.length);
         var autoCmplt = document.getElementById('pac-card');
         if (autoCmplt.style.display === 'block') {
             autoCmplt.style.display = 'none';
@@ -284,7 +311,7 @@ function initMap() {
         );
         //empty the input field and save the markerArray
         document.getElementById('pac-input').value = '';
-        localStorage.setItem('mustVisitPlaces', JSON.stringify(mustVisitPlaces));
+        // localStorage.setItem('mustVisitPlaces', JSON.stringify(mustVisitPlaces));
         // marker.setVisible(true);
 
         var address = '';
