@@ -4,7 +4,9 @@
     // locate you.
     // Try HTML5 geolocation.
     // function getLocation() {
-    //     var returnPosition;
+    //     var returnPosition
+function getCurrentLocation(_callback, toCallBackData) {
+    // conџsole.log(position);
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function (position) {
             var pos = {
@@ -28,7 +30,7 @@
                 },
                 title: 'You are here!'
             });
-            returnPosition = pos;
+            _callback(currentPos, toCallBackData);
         }, function () {
             handleLocationError(true, infoWindow, map.getCenter());
         });
@@ -37,12 +39,12 @@
         handleLocationError(false, infoWindow, map.getCenter());
     }
 
+}
+
     function handleLocationError(browserHasGeolocation, infoWindow, pos) {
         infoWindow.setPosition(pos);
         infoWindow.setContent(browserHasGeolocation ?
             'Error: The Geolocation service failed.' :
             'Error: Your browser doesn\'t support geolocation.');
     }
-    //     return returnPosition;
-    // }
     // END Geo-location

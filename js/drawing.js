@@ -36,7 +36,7 @@ function gDirRequest(DirectionService, waypoints, userFunction, waypointIndex, p
     DirectionService.route(request, function(response, status) {
 
         if (status == google.maps.DirectionsStatus.OK) {
-
+            
             path = path.concat(response.routes[0].overview_path);
 
             if (s[1] != null) {
@@ -48,7 +48,7 @@ function gDirRequest(DirectionService, waypoints, userFunction, waypointIndex, p
         } else {
             console.log(status);
         }
-
+        
     });
 }
 

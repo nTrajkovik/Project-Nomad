@@ -237,7 +237,12 @@ html, body
 {
   background-color: #add8e6;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 1920) {
+  #right-panel {
+        display: block;
+  }
+}
+@media only screen and (max-width: 998px) {
     /* For mobile phones: */
     #directions-toggle {
         display: inline-block;
