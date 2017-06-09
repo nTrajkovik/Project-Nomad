@@ -158,17 +158,22 @@ function initMap() {
             id: id,
             map: map,
             position: place.geometry.location,
-            animation: google.maps.Animation.DROP
+            animation: google.maps.Animation.DROP,
+            icon: {
+                url: "img/map-marker-small.svg",
+                size: new google.maps.Size(71, 71),
+                // anchor: new google.maps.Point(17, 34),
+                scaledSize: new google.maps.Size(25, 25)
+            }
         });
         markers[id] = marker; // cache created marker to markers object with id as its key
         // ANIMATION
 
         function toggleBounce() {
-            if (marker.getAnimation() !== null) {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(function () {
                 marker.setAnimation(null);
-            } else {
-                marker.setAnimation(google.maps.Animation.BOUNCE);
-            }
+            }, 1400)
         }
         marker.addListener('click', toggleBounce);
         // ANIMATION END
