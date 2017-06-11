@@ -1,6 +1,11 @@
+/**
+ * Array used to handle the places objects
+ */
 var mustVisitPlaces = [];
 
-//MARKERS
+/**
+ * Piece of code used to handle markers
+ */
 var currentId = 0;
 var uniqueId = function () {
     return ++currentId;
@@ -11,9 +16,15 @@ var deleteMarker = function (id) {
     var marker = markers[id]; // find the marker by given id
     marker.setMap(null);
 }
-//END MARKERS
+/**
+ * Declaring Google Maps Services variables
+ */
 var directionsService
 var directionsDisplay;
+var PlacesService;
+var infowindow;
+var infowindowContent = document.getElementById('infowindow-content');
+//MockUp idea
 var iconBase = 'https://maps.google.com/mapfiles/ms/micons/';
 var icons = {
     yellow: {
@@ -26,47 +37,24 @@ var icons = {
         icon: iconBase + 'red.png'
     }
 };
-// animation for login screen
+/**
+ * Fancy login screen
+ */
 let login = document.getElementById('login-box');
 setTimeout(function () {
     login.style.backgroundColor = 'black';
     login.style.width = '1500px';
     setTimeout(function () {
+        login.classList = [];
         document.getElementById('intro-screen').style.display = 'none';
     }, 3000)
 }, 100);
-// var map;
-// FUNTIONS
-//Get features - MochUp for server side
-function getFeatures() {
-    var features = [{
-        position: {
-            lat: 42.004551,
-            lng: 21.391762
-        },
-        type: 'green',
-        title: "Skopje City Mall"
-    }, {
-        position: {
-            lat: 42.011974,
-            lng: 21.416307
-        },
-        type: 'yellow',
-        title: "Zoo"
-    }, {
-        position: {
-            lat: 41.986897,
-            lng: 21.439830
-        },
-        type: 'red',
-        title: "Seavus Educational and Development Centar"
-    }];
-    return features;
-}
 
-// END
 
-//initMap()
+
+/**
+ * Function used to build the map and display on it
+ */
 function initMap() {
     var mapOptions = {
         zoom: 16,
@@ -90,7 +78,7 @@ function initMap() {
                     "visibility": "on"
                 },
                 {
-                    "weight": 20
+                    "weight": 8
                 }
             ]
         }]
@@ -103,10 +91,10 @@ function initMap() {
         map: map,
         panel: document.getElementById('right-panel')
     });
-    var infowindow = new google.maps.InfoWindow();
-    var infowindowContent = document.getElementById('infowindow-content');
+    infowindow = new google.maps.InfoWindow();
+    infowindowContent = document.getElementById('infowindow-content');
 
-    var PlacesService = new google.maps.places.PlacesService(map);
+    PlacesService = new google.maps.places.PlacesService(map);
     // PlacesService.nearbySearch({
     //     location: {
     //         lat: 42.005139,
@@ -118,169 +106,12 @@ function initMap() {
     //     'food', 'liquor_store', 'restaurant']
     // }, callback);
 
-    function callback(results, status) {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-            var res = results;
-            res.forEach(function (element) {
-                mustVisitPlaces.push(element);
-            }, this);
-            showMarkers(res);
-        }
-    }
-
-    function performSearch() {
-        var request = {
-            bounds: map.getBounds(),
-            keyword: 'cafe restaurant bar food'
-        };
-        PlacesService.radarSearch(request, callback);
-    }
-
-    /**
-     * Computes total distance
-     * and inserts it into right panel
-     * @param {*} result 
-     */
-    function computeTotalDistance(result) {
-        var total = 0;
-        var myroute = result.routes[0];
-        for (var i = 0; i < myroute.legs.length; i++) {
-            total += myroute.legs[i].distance.value;
-        }
-        total = total / 1000;
-        document.getElementById('total').innerHTML = total + ' km';
-    }
-
-
-    function createMarker(place) {
-        var id = uniqueId(); // get new id
-        var marker = new google.maps.Marker({
-            id: id,
-            map: map,
-            position: place.geometry.location,
-            animation: google.maps.Animation.DROP,
-            icon: {
-                url: "img/map-marker-small.svg",
-                size: new google.maps.Size(71, 71),
-                // anchor: new google.maps.Point(17, 34),
-                scaledSize: new google.maps.Size(25, 25)
-            }
-        });
-        markers[id] = marker; // cache created marker to markers object with id as its key
-        // ANIMATION
-
-        function toggleBounce() {
-            marker.setAnimation(google.maps.Animation.BOUNCE);
-            setTimeout(function () {
-                marker.setAnimation(null);
-            }, 1400)
-        }
-        marker.addListener('click', toggleBounce);
-        // ANIMATION END
-        function make_callback(place) {
-            return function () {
-                return place;
-            };
-        }
-        google.maps.event.addListener(marker, 'click', function () {
-            let placeO = make_callback(place)();
-            PlacesService.getDetails({
-                placeId: placeO.place_id
-            }, function (placeO, status) {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    var URL = "";
-                    if (placeO.photos && placeO.photos.length > 0) {
-                        URL = placeO.photos[0].getUrl({
-                            'maxHeight': 100
-                        });
-                    }
-                    infowindow.setContent(
-                        '<div>' +
-                        '<img src="' + placeO.icon + '" height="20" width="20"/>' +
-                        '<strong>' + placeO.name + '</strong>' + '<br>' +
-                        '<img src="' + URL + '" height="auto" width="auto"/>' +
-                        '<button onclick="routeToMarker({lat:' + marker.position.lat() + ',lng:' + marker.position.lng() + '})">Go there</button>' +
-                        '<button onclick=" deleteMarker(' + marker.id + ')">Delete</button>' + '<br>' +
-                        placeO.formatted_address + '</div>');
-                    infowindow.open(map, marker);
-
-                } else {
-                    console.log("Something failed, status=" + status);
-                }
-            });
-        });
-
-    }
-    //Show markers
-    function showMarkers(markers) {
-        for (let i = 0; i < markers.length; i++) {
-            createMarker(markers[i]);
-        }
-    }
-
-    directionsDisplay.addListener('directions_changed', function () {
-        computeTotalDistance(directionsDisplay.getDirections());
-    });
-    //Add submit listener and toggle listener
-    document.getElementById('search-places').addEventListener('click', function () {
-        // calculateAndDisplayRoute(directionsService, directionsDisplay);
-        performSearch();
-        console.log(mustVisitPlaces.length);
-    });
-
-    document.getElementById('draw-route').addEventListener('click', function () {
-
-        var locationWaypoints = [];
-        for (var i = 0; i < mustVisitPlaces.length; i++) {
-            locationWaypoints.push({
-                location: mustVisitPlaces[i].geometry.location,
-                stopover: true
-            });
-        }
-        console.log(mustVisitPlaces.length);
-        // get directions and draw on map
-        gDirRequest(directionsService, locationWaypoints, function drawGDirLine(path) {
-            var line = new google.maps.Polyline({
-                clickable: false,
-                map: map,
-                path: path,
-                strokeColor: "#228B22",
-                strokeOpacity: 0.8,
-                strokeWeight: 3
-            });
-        });
-    });
-
-    document.getElementById('auto-complete-hide').addEventListener('click', function () {
-        // console.log(mustVisitPlaces.length);
-        var autoCmplt = document.getElementById('pac-card');
-        if (autoCmplt.style.display === 'block') {
-            autoCmplt.style.display = 'none';
-        } else {
-            autoCmplt.style.display = 'block';
-        }
-    });
-
-    document.getElementById('directions-toggle').addEventListener('click', function () {
-        var x = document.getElementById('map');
-        var y = document.getElementById('right-panel');
-        if (x.style.display === 'none') {
-            x.style.display = 'block';
-            this.textContent = 'Directions';
-            y.style.display = 'none';
-        } else {
-            x.style.display = 'none';
-            this.textContent = 'Map';
-            y.style.display = 'block';
-        }
-    });
 
     infowindow.setContent(infowindowContent);
     var marker = new google.maps.Marker({
         map: map,
         anchorPoint: new google.maps.Point(0, -29)
     });
-
     //Auto-complete handler
     var card = document.getElementById('pac-card');
     var input = document.getElementById('pac-input');
@@ -334,7 +165,164 @@ function initMap() {
     });
 
 
+
+
 } //END InitMap
+
+//callback used to performSearch()
+function callback(results, status) {
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+        var res = results;
+        res.forEach(function (element) {
+            mustVisitPlaces.push(element);
+        }, this);
+        showMarkers(res);
+    }
+}
+//function used to call the PlacesService
+function performSearch() {
+    var request = {
+        bounds: map.getBounds(),
+        keyword: 'cafe restaurant bar food'
+    };
+    PlacesService.radarSearch(request, callback);
+}
+
+/**
+ * Computes total distance
+ * and inserts it into right panel
+ * @param {*} result 
+ */
+function computeTotalDistance(result) {
+    var total = 0;
+    var myroute = result.routes[0];
+    for (var i = 0; i < myroute.legs.length; i++) {
+        total += myroute.legs[i].distance.value;
+    }
+    total = total / 1000;
+    document.getElementById('total').innerHTML = total + ' km';
+}
+
+/**
+ * The all big and mighty createMarker function
+ * @param {google.maps.places.PlaceResult} place 
+ */
+function createMarker(place) {
+    var id = uniqueId(); // get new id
+    var marker = new google.maps.Marker({
+        id: id,
+        map: map,
+        position: place.geometry.location,
+        animation: google.maps.Animation.DROP
+        // ,
+        // icon: {
+        //     url: "img/map-marker-small.svg",
+        //     size: new google.maps.Size(71, 71),
+        //     // anchor: new google.maps.Point(17, 34),
+        //     scaledSize: new google.maps.Size(25, 25)
+        // }
+    });
+    markers[id] = marker; // cache created marker to markers object with id as its key
+
+    // ANIMATION
+    function toggleBounce() {
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(function () {
+            marker.setAnimation(null);
+        }, 1400)
+    }
+    marker.addListener('click', toggleBounce);
+    // ANIMATION END
+
+    google.maps.event.addListener(marker, 'click', function () {
+        let placeO = place;
+        PlacesService.getDetails({
+            placeId: placeO.place_id
+        }, function (placeO, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                var URL = "";
+                if (placeO.photos && placeO.photos.length > 0) {
+                    URL = placeO.photos[0].getUrl({
+                        'maxHeight': 100
+                    });
+                }
+                // smeni so back ticks
+                infowindow.setContent(
+                    '<div>' +
+                    '<img src="' + placeO.icon + '" height="20" width="20"/>' +
+                    '<strong>' + placeO.name + '</strong>' + '<br>' +
+                    '<img src="' + URL + '" height="auto" width="auto"/>' +
+                    '<button onclick="routeToMarker({lat:' + marker.position.lat() + ',lng:' + marker.position.lng() + '})">Go there</button>' +
+                    '<button onclick=" deleteMarker(' + marker.id + ')">Delete</button>' + '<br>' +
+                    placeO.formatted_address + '</div>');
+                infowindow.open(map, marker);
+
+            } else {
+                console.log("Something failed, status=" + status);
+            }
+        });
+    });
+
+}
+//Show markers
+//TO-DO: add logic for not displaying/ adding existing markers
+function showMarkers(markers) {
+    for (let i = 0; i < markers.length; i++) {
+        createMarker(markers[i]);
+    }
+}
+
+//Add submit listener and toggle listener
+document.getElementById('search-places').addEventListener('click', function () {
+    performSearch();
+});
+
+document.getElementById('draw-route').addEventListener('click', function () {
+
+    var locationWaypoints = [];
+    for (var i = 0; i < mustVisitPlaces.length; i++) {
+        locationWaypoints.push({
+            location: mustVisitPlaces[i].geometry.location,
+            stopover: true
+        });
+    }
+    // get directions and draw on map
+    gDirRequest(directionsService, locationWaypoints, function drawGDirLine(path) {
+        var line = new google.maps.Polyline({
+            clickable: false,
+            map: map,
+            path: path,
+            strokeColor: "#228B22",
+            strokeOpacity: 0.8,
+            strokeWeight: 3
+        });
+    });
+});
+
+document.getElementById('auto-complete-hide').addEventListener('click', function () {
+    // console.log(mustVisitPlaces.length);
+    var autoCmplt = document.getElementById('pac-card');
+    if (autoCmplt.style.display === 'block') {
+        autoCmplt.style.display = 'none';
+    } else {
+        autoCmplt.style.display = 'block';
+    }
+});
+
+document.getElementById('directions-toggle').addEventListener('click', function () {
+    var x = document.getElementById('map');
+    var y = document.getElementById('right-panel');
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+        this.textContent = 'Directions';
+        y.style.display = 'none';
+    } else {
+        x.style.display = 'none';
+        this.textContent = 'Map';
+        y.style.display = 'block';
+    }
+});
+
 
 
 function routeToMarker(position) {
@@ -383,3 +371,14 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay, from, to
     });
 
 }
+
+// benneficii za Studentski org za azure
+
+/**
+ * TO-DO:
+ * 1. Implement marker logic for search
+ * 2. Fix HTML5 mobile version
+ * 3. Add search timout
+ * 4. Create DB for marker storage to not overload API
+ * 5. Add Gmail authentication 
+ */

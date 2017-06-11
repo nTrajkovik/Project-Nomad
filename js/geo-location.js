@@ -1,12 +1,13 @@
-    // Note: This example requires that you consent to location sharing when
-    // prompted by your browser. If you see the error "The Geolocation service
-    // failed.", it means you probably did not give permission for the browser to
-    // locate you.
-    // Try HTML5 geolocation.
-    // function getLocation() {
-    //     var returnPosition
+/**
+ * Note: This example requires that you consent to location sharing when
+ * prompted by your browser. If you see the error "The Geolocation service
+ * failed.", it means you probably did not give permission for the browser to
+ * locate you.
+ * HTML5 geolocation.
+ * makes a marker object and calls the _callback function with it as parameter
+ */ 
 function getCurrentLocation(_callback, toCallBackData) {
-    // conџsole.log(position);
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function (position) {
             var pos = {
@@ -14,8 +15,6 @@ function getCurrentLocation(_callback, toCallBackData) {
                 lng: position.coords.longitude
             };
 
-            // infoWindow.setPosition(pos);
-            // infoWindow.setContent('Location found.');
             map.setCenter(pos);
 
             var currentPos = new google.maps.Marker({

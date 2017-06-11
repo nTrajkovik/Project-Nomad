@@ -116,3 +116,44 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
     }, 3000)
   }, 100);
 })();
+
+
+//make_callback function to insert the right place
+function make_callback(place) {
+  return function () {
+    return place;
+  };
+}
+// make_callback(place)();
+
+directionsDisplay.addListener('directions_changed', function () {
+  computeTotalDistance(directionsDisplay.getDirections());
+}); 
+/**
+ * MochUp for server side
+ */
+function getFeatures() {
+    var features = [{
+        position: {
+            lat: 42.004551,
+            lng: 21.391762
+        },
+        type: 'green',
+        title: "Skopje City Mall"
+    }, {
+        position: {
+            lat: 42.011974,
+            lng: 21.416307
+        },
+        type: 'yellow',
+        title: "Zoo"
+    }, {
+        position: {
+            lat: 41.986897,
+            lng: 21.439830
+        },
+        type: 'red',
+        title: "Seavus Educational and Development Centar"
+    }];
+    return features;
+}
